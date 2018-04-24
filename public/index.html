@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/js-cookie/latest/js.cookie.min.js"></script>
+    <script src="//unpkg.com/echarts/dist/echarts.min.js"></script>
+    <script src="//unpkg.com/v-charts/lib/index.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        html,body{
+            background: url("img/bg3.jpg");
+            background-size: cover;
+            height: 100%;
+        }
+        #header {
+            width: 100%;
+            padding: 10px;
+            display: flex;
+            padding-bottom: 40px;
+        }
+
+        #header div {
+            height: 60px;
+            width: 15%;
+        }
+
+        #header .title {
+            font-size: 20px;
+            height: 60px;
+            text-align: center;
+            width: 80%;
+            line-height: 60px;
+        }
+
+        img {
+            height: 100%;
+            width: 100%;
+        }
+
+        #content {
+            width: 100%;
+            display: flex;
+        }
+
+        #cleft {
+            width: 20%;
+        }
+
+        #cright {
+            width: 80%;
+        }
+        #cright .logo{
+            height: 80px;
+            width: 40%;
+            margin:5% auto auto 10%;
+        }
+        #cright .logo img{
+            height: 100%;
+            width: 100%;
+        }
+
+        a {
+            text-decoration: none;
+            color: rgba(0, 0, 0, 0.5);
+            width: 20%;
+            text-align: right;
+        }
+
+        a:hover {
+            color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <div>
+                <img src="/img/activision.jpg" alt="">
+            </div>
+            <p class="title">问卷调查系统</p>
+            <a href="/logout">注销</a>
+        </div>
+        <div id="content">
+            <div id="cleft">
+                <el-menu default-active="2" class="el-menu-vertical-demo" @select="loadPage">
+                    <el-menu-item index="/menu/users.html">
+                        <span slot="title">用户管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/menu/outline.html">
+                        <span slot="title">大纲管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/menu/option.html">
+                        <span slot="title">选项管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/menu/papers.html">
+                        <span slot="title">问卷管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/menu/personal.html">
+                        <span slot="title">个人中心</span>
+                    </el-menu-item>
+
+                </el-menu>
+            </div>
+            <div id="cright">
+                <div class="logo">
+                    <img src="/img/nvdia.jpg" alt="">
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+
+        </div>
+    </div>
+    <script>
+        var indexVm = new Vue({
+            el: "#cleft",
+            data: {
+            },
+            methods: {
+                loadPage: function (index) {
+                    $.get(index, function (result) {
+                        $("#cright").html(result)
+                    })
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

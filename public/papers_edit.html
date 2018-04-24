@@ -1,0 +1,138 @@
+<div id="paperEdit">
+    <div class="content">
+        <el-card class="cleft">
+            <el-tree ref="tree" :data="outline" :props="defaultProps" @check-change="selectNode" default-expand-all show-checkbox node-key="id"></el-tree>
+        </el-card>
+        <el-card class="cleft">
+            <el-tree ref="tree1" :data="outline1" :props="defaultProps" @check-change="select" default-expand-all show-checkbox node-key="id"></el-tree>
+        </el-card>
+        <div class="cright">
+            <el-card style="margin:5px" v-for="(item,index) in papers.content" :key="'papers_'+index" :header="item.text">
+                <el-radio-group v-model="radio2">
+                    <el-radio v-for="(i,index) in papers.item " :key="'item_'+index" :label="i.id">{{i.text}}</el-radio>
+                </el-radio-group>
+            </el-card>
+        </div>
+    </div>
+    <div slot="footer">
+        <el-button onclick="indexVm.loadPage('/menu/papers.html')">取 消</el-button>
+        <el-button type="primary" @click="changeQues">确 定</el-button>
+    </div>
+</div>
+
+<script>
+    var vm = new Vue({
+        el: "#paperEdit",
+        created: function () {
+            var _this = this
+            $.get("/outline", function (result) {
+                if (result.error == 0) {
+                    _this.outline = result.data
+                }
+            })
+            $.get("/option", function (result) {
+                if (result.error == 0) {
+                    _this.outline1 = result.data
+                }
+            })
+            $.get("/papers/find", { id: Cookies.get('paper_id') },
+                function (result) {
+                    if (result.error != 0) return
+                    console.log(result)
+                    _this.papers.title = result.data.title
+                    _this.$refs.tree.setCheckedNodes(JSON.parse(result.data.content));
+                    _this.$refs.tree1.setCheckedNodes(JSON.parse(result.data.item));
+                    console.log(result.data.item)
+                })
+        },
+        methods: {
+            selectNode: function (data, isSelect) {
+                if (data.children.length == 0) {
+                    if (isSelect) {
+                        this.papers.content.push(data)
+                    } else {
+                        var index = this.papers.content.indexOf(data)
+                        this.papers.content.splice(index, 1)
+                    }
+                }
+            },
+            select: function (data, isSelect) {
+                console.log(data)
+                if (data.children.length == 0) {
+                    if (isSelect) {
+                        this.papers.item.push(data)
+                    } else {
+                        var index = this.papers.item.indexOf(data)
+                        this.papers.item.splice(index, 1)
+                    }
+                }
+            },
+            //修改问卷
+            changeQues: function () {
+                var _this = this
+                this.$prompt('请输入问卷标题', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputPattern: /^.+$/,
+                    inputErrorMessage: '标题不能为空',
+                    inputValue: _this.papers.title,
+                    callback: function (action, obj) {
+                        if (action == 'confirm') {
+                            _this.papers.title = obj.inputValue
+                            $.post('/papers/edit', {
+                                id: Cookies.get('paper_id'),
+                                title: _this.papers.title,
+                                content: JSON.stringify(_this.papers.content),
+                                item: JSON.stringify(_this.papers.item)
+                            }, function (result) {
+                                console.log(result)
+                                indexVm.loadPage('/menu/papers.html')
+                            })
+                            $.get("/papers", function (result) {
+                                if (result.error == 0) {
+                                    _this.papersData = result.data
+                                } else {
+                                    console.log("数据获取失败")
+                                }
+                            }, "json")
+                        }
+                    }
+                })
+            },
+        },
+        data: function () {
+            return {
+                radio2: '',
+                dgShow: false,
+                chgShow: false,
+                papersData: [],
+                outline: [],
+                outline1:[],
+                arr: [],
+                papers: {
+                    id: '',
+                    title: '',
+                    content: [],
+                    item: []
+                },
+                defaultProps: {
+                    children: 'children',
+                    label: 'text'
+                }
+            }
+        }
+    })
+
+</script>
+
+<style>
+    .content {
+        overflow: hidden;
+    }
+
+    .content>div {
+        float: left;
+        border: 1px solid rgba(0, 0, 0, .1);
+        margin: 5px;
+    }
+</style>

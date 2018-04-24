@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/vue.js"></script>
+    <link rel="stylesheet" href="/element-ui/lib/theme-chalk/index.css">
+    <script src="/js/element.js"></script>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body,
+    html {
+        height: 100%;
+        background: url("/img/bg3.jpg");
+        background-size: cover;
+    }
+
+    #container {
+        width: 400px;
+        margin: 40px auto 0 auto;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+    }
+
+    .title {
+        height: 60px;
+        width: 100%;
+        line-height: 60px;
+        padding-bottom: 20px;
+    }
+
+    .title img {
+        height: 100%;
+        width: 160px;
+    }
+
+    .title span {
+        font-size: 18px;
+    }
+
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+</style>
+
+<body>
+    <div id="container">
+        <div class="title">
+            <img src="/img/activision.jpg" alt="">
+            <span>用户信息修改</span>
+        </div>
+        <el-form id="regFrm" :status-icon="true" :rules="rules" label-position="left" action="/users/edit" method="post" ref="form"
+            :model="form" label-width="80px">
+
+            <el-form-item label="ID" prop="id" v-show="false">
+                <el-input v-model="form.id" name="id"></el-input>
+            </el-form-item>
+
+            <el-form-item label="用户名" prop="username">
+                <el-input v-model="form.username" name="username"></el-input>
+            </el-form-item>
+
+            <el-form-item label="请输入新密码" prop="password">
+                <el-input v-model="form.password" name="password" type="password"></el-input>
+            </el-form-item>
+
+            <el-form-item label="确认密码" prop="password2">
+                <el-input v-model="form.password2" type="password"></el-input>
+            </el-form-item>
+
+            <el-form-item label="电话" prop="phone">
+                <el-input v-model="form.phone" name="phone"></el-input>
+            </el-form-item>
+
+            <el-form-item label="邮箱" prop="email">
+                <el-input v-model="form.email" name="email"></el-input>
+            </el-form-item>
+
+            <el-form-item label="性别" prop="sex">
+                <el-radio-group v-model="form.sex">
+                    <el-radio :label="1" name="sex">男</el-radio>
+                    <el-radio :label="2" name="sex">女</el-radio>
+                    <el-radio :label="3" name="sex">保密</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item>
+                <el-button @click="save()" type="primary" @click="onSubmit">保存修改</el-button>
+            </el-form-item>
+        </el-form>
+        <h4>修改头像</h4>
+        <el-upload class="avatar-uploader" action="/upload" :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+    </div>
+</body>
+
+</html>
+<script>
+    new Vue({
+        el: "#container",
+        created: function () {
+            var _this = this
+            $.get('/users/personal/info', function (result) {
+                console.log(result.data.username)
+                _this.form.username = result.data.username
+                _this.form.email = result.data.email
+                _this.form.phone = result.data.phone
+                _this.form.sex = result.data.sex
+                _this.form.id = result.data.id
+            })
+        },
+        data: function () {
+            var _this = this
+            var chkExist = function (option, callback) {
+                $.get('/chkExist', {
+                    filed: option.filed,
+                    value: option.value,
+                    table: option.table
+                }, function (result) {
+                    if (result.error == 0) {
+                        callback()
+                    } else {
+                        callback("已存在")
+                    }
+                })
+            }
+            var chkPwd = function (value, callback) {
+                if (value.trim() == '') {
+                    callback(new Error("请输入确认密码"))
+                } else if (value == _this.form.password) {
+                    callback()
+                } else {
+                    callback(new Error("两次输入密码不一致"))
+                }
+            }
+            return {
+                imageUrl: '',
+                form: {
+                    username: '',
+                    password: '',
+                    password2: '',
+                    email: '',
+                    phone: '',
+                    sex: '',
+                    id: '',
+
+                },
+                rules: {
+                    username: [
+                        {
+                            validator: function (rule, value, callback) {
+                                var usernamereg = /^[a-z]\w{2,17}$/
+                                if (value.trim() == '') {
+                                    callback(new Error('请输入用户名'))
+                                } else if (!usernamereg.test(value)) {
+                                    callback(new Error('请输入2-18个字符，以小写字母开始'))
+                                } else {
+                                    callback()
+                                }
+                            },
+                            trigger: 'blur'
+                        },
+                    ],
+                    password: [
+                        {
+                            validator: function (rule, value, callback) {
+                                var len = value.length
+                                if (value.trim() == '') {
+                                    callback(new Error('请输入密码'))
+                                } else if (len < 6 || len > 18) {
+                                    callback(new Error('密码长度6-18个字符'))
+                                } else {
+                                    _this.$refs.form.validateField("password2")
+                                    callback()
+                                }
+                            },
+                        }
+                    ],
+                    password2: [
+                        {
+                            validator: function (rule, value, callback) {
+                                chkPwd(value, callback)
+                            }
+                        }
+                    ],
+                    email: [
+                        {
+                            validator: function (rule, value, callback) {
+                                var emailreg = /^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$/
+                                if (value.trim() == '') {
+                                    callback(new Error('请输入邮箱'))
+                                } else if (!emailreg.test(value)) {
+                                    callback(new Error('邮箱格式不合法'))
+                                } else {
+                                    callback()
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                    phone: [
+                        {
+                            validator: function (rule, value, callback) {
+                                var phonereg = /^1([358][0-9]|4[579]|66|7[0135678]|9[89])[0-9]{8}$/;
+                                if (value.trim() == "") {
+                                    callback(new Error("请输入手机号"));
+                                } else if (!phonereg.test(value)) {
+                                    callback(new Error("无效手机号码"));
+                                } else {
+                                    callback();
+                                }
+                            },
+                            trigger: "blur"
+                        }
+                    ]
+                }
+            }
+        },
+        methods: {
+            save: function () {
+                var _this = this
+                this.$refs.form.validate(function (valid) {
+                    if (valid) {//验证全部通过提交数据
+                        regFrm.submit()
+                    }
+                })
+            },
+            handleAvatarSuccess(res, file) {
+                this.imageUrl = URL.createObjectURL(file.raw);
+                var _this = this
+                $.post('/personal/logo', { photo: res[0].filename }, function (result) {
+                    if (result.error == 0) {
+                        console.log(result)
+                        _this.$message({
+                            type: 'success',
+                            message: '头像修改成功!'
+                        })
+                    } else {
+                        _this.$message({
+                            type: 'error',
+                            message: '头像修改失败!'
+                        })
+                    }
+                })
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            }
+        },
+    })
+</script>

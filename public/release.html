@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/js-cookie/latest/js.cookie.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        #container {
+            width: 60%;
+            margin: 40px auto 0 auto;
+        }
+
+        #header {
+            width: 100%;
+            padding: 10px;
+            display: flex;
+            padding-bottom: 40px;
+        }
+
+        #header div {
+            height: 60px;
+            width: 15%;
+        }
+
+        #header .title {
+            font-size: 20px;
+            height: 60px;
+            text-align: center;
+            width: 80%;
+            line-height: 60px;
+        }
+
+        img {
+            height: 100%;
+            width: 100%;
+        }
+
+        a {
+            text-decoration: none;
+            color: rgba(0, 0, 0, 0.5);
+            width: 20%;
+            text-align: right;
+        }
+
+        a:hover {
+            color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <div>
+                <img src="/img/activision.jpg" alt="">
+            </div>
+            <p class="title">随堂问卷</p>
+        </div>
+
+        <h2 style="text-align: center">
+            {{papers.title}}
+        </h2>
+
+        <el-card style="margin:5px" v-for="(item,index) in papers.content" :key="'papers_'+index" :header="item.text">
+            <el-radio-group v-model="papers.content[index].answer">
+                <el-radio v-for="(i,index) in papers.item " :key="'item_'+index" :label="i.id">{{i.text}}</el-radio>
+            </el-radio-group>
+        </el-card>
+
+        <el-card style="margin-bottom:5px;" header="其他建议">
+            <el-input type="textarea" :rows="2" palceholder="其他建议" v-model="papers.note">
+            </el-input>
+        </el-card>
+
+        <div>
+            <el-button type="primary" @click="save">提 交</el-button>
+        </div>
+
+    </div>
+    <script>
+
+
+        var indexVm = new Vue({
+            el: "#container",
+            created: function () {
+                var _this = this,
+                    id = this.paperId
+                $.get('/papers/find', { id: id }, function (result) {
+                    if (result.error != 0) return
+                    _this.papers.title = result.data.title
+                    _this.papers.content = JSON.parse(result.data.content)
+                })
+            },
+            data: {
+                paperId: Cookies.getJSON('release_paper_id'),
+                papers: {
+                    title: '',
+                    content: [],
+                    note: '',
+                    item: [
+                        { id: 1, text: '优秀'},
+                        { id: 2, text: '良好'},
+                        { id: 3, text: '中等'},
+                        { id: 4, text: '很差'},
+                    ]
+                }
+            },
+            methods: {
+                save: function () {
+                    var _this = this,
+                        arr = []
+                    for (i in _this.papers.content) {
+                        arr.push(_this.papers.content[i].answer)
+                    }
+                    //问卷内容不能有空
+                    if (arr.indexOf(undefined) == -1) {
+                        $.post("/papers/release/add", {
+                            title: '',
+                            paper_id: _this.paperId,
+                            content: JSON.stringify(_this.papers.content),
+                            item: JSON.stringify(_this.papers.item),
+                            note: _this.papers.note,
+                            title: _this.papers.title,
+                            cuid: Cookies.getJSON('releaseInfo' + _this.paperId).cuid
+                        }, function (result) {
+                            location.reload()
+                        })
+                    } else {
+                        _this.$message.error('问卷请填写完整')
+                        return
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

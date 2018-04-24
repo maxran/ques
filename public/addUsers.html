@@ -1,0 +1,78 @@
+<div id="addUsers">
+    <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="ID" prop="id">
+            <el-input v-model="ruleForm.id"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+            <el-input v-model="ruleForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+            <el-input v-model="ruleForm.password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" prop="phone">
+            <el-input v-model="ruleForm.phone"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+            <el-input v-model="ruleForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="性别" prop="sex">
+            <el-radio-group v-model="ruleForm.sex">
+                <el-radio label="1">男</el-radio>
+                <el-radio label="2">女</el-radio>
+                <el-radio label="3">保密</el-radio>
+            </el-radio-group>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="submitForm">添加用户</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+
+<script>
+    var vm = new Vue({
+        el: "#addUsers",
+        data: {
+            ruleForm: {
+                id: '',
+                username: '',
+                password: '',
+                phone: '',
+                email: '',
+                sex: '',
+            },
+            rules: {
+                username: [
+                    { required: true, message: '请输入姓名', trigger: 'blur' },
+                    { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+                ],
+                password: [
+                    { required: true, message: '请输入密码', trigger: 'blur' },
+                    { min: 6, max: 12, message: '长度在 6 到 12 个字符', trigger: 'blur' }
+                ],
+                phone: [
+                    { required: true, message: '请输入手机号码', trigger: 'blur' },
+                    { min: 11, max: 11, message: '请输入11位有效手机号', trigger: 'blur' }
+                ],
+                email: [
+                    { required: true, message: '请输入邮箱', trigger: 'blur' },
+                    { message: '请输入有效邮箱', trigger: 'blur' }
+                ],
+                sex: [
+                    { required: true, message: '性别', trigger: 'change' }
+                ],
+            }
+        },
+        methods: {
+            submitForm() {
+                var _this = this
+                $.get('/users/add', { data: _this.ruleForm }, function (result) {
+                    _this.$message({
+                        message: '添加成功!',
+                        type: 'success'
+                    })
+                }, "json")
+            }
+        }
+    })
+</script>

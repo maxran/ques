@@ -1,0 +1,125 @@
+<div id="users">
+    <el-table v-loading="loading" :data="usersData" style="width: 100%">
+        <el-table-column width=700 label="个人信息">
+            <template slot-scope="props">
+                <el-form label-position="left" inline>
+                    <el-form-item label="头像" class="info">
+                        <span>
+                            <img :src=" props.row.photo" alt="" style="width:80px;height:80px;">
+                        </span>
+                    </el-form-item>
+                    <el-form-item label="用户名" class="info">
+                        <span>{{ props.row.username }}</span>
+                    </el-form-item>
+                    <el-form-item label="用户 ID" class="info">
+                        <span>{{ props.row.id }}</span>
+                    </el-form-item>
+                    <el-form-item label="联系电话" class="info">
+                        <span>{{ props.row.phone }}</span>
+                    </el-form-item>
+                    <el-form-item label="邮箱" class="info">
+                        <span>{{ props.row.email }}</span>
+                    </el-form-item>
+                    <el-form-item label="性别" class="info">
+                        <span> {{sex[props.row.sex]}}</span>
+                    </el-form-item>
+                    <el-form-item>
+                        <a target="_self" href="/users/personalEdit" style="color:#409EFF; margin-left: 10px;">修改个人信息</a>
+                    </el-form-item>
+                </el-form>
+            </template>
+        </el-table-column>
+        <el-table-column label="总体情况">
+            <template slot-scope="scope">
+                <ve-ring height="400px" :data="chartData" :settings="{}"></ve-ring>
+            </template>
+        </el-table-column>
+    </el-table>
+</div>
+
+<style>
+    .info {
+        width: 45%;
+        height: 90px;
+        padding: 10px;
+        font-size: 18px;
+    }
+</style>
+
+<script>
+    new Vue({
+        el: "#users",
+        data: {
+            usersData: [],
+            sex: ["", "男", "女", "保密"],
+            loading: true,
+            chartData: {
+                columns: ['level', 'pre'],
+                rows: [
+                    { 'level': '优秀', 'pre': 40 },
+                    { 'level': '良好', 'pre': 30 },
+                    { 'level': '中等', 'pre': 15 },
+                    { 'level': '很差', 'pre': 15 },
+                ]
+            }
+        },
+        created: function () {
+            var _this = this
+            $.get('/users/personal', function (result) {
+                console.log(result)
+                _this.usersData = result.data
+                _this.loading = false
+            })
+            $.get("/users/personal/find", function (result) {
+                var data = JSON.stringify(result.data)
+                result.data = JSON.parse(data, function (key, val) {
+                    if (key == "content" || key == "item") {
+                        return JSON.parse(val)
+                    } else {
+                        return val
+                    }
+                })
+                var arrA = []
+                for (var j in result.data) {
+                    var chartData = {
+                        columns: ['level', 'pre'],
+                        rows: []
+                    }
+
+                    var tmp = {},
+                        arr = []
+                    for (var k in result.data[j].content) {
+                        var answer = result.data[j].content[k].answer
+                        answer = _this.trAnswer(answer, result.data[j].item)
+                        arr.push(result.data[j].content[k].answer)
+                    }
+
+                    console.log(arr)
+                    // if (tmp[answer]) {
+                    //         tmp[answer]++
+                    //     } else {
+                    //         tmp[answer] = 1
+                    //     }
+
+                    // for (var l in tmp) {
+                    //     chartData.rows.push({
+                    //         level: l,
+                    //         pre: tmp[l]
+                    //     })
+                    // }
+                    // result.data[j].chartData = chartData
+                }
+            })
+        },
+        methods: {
+            trAnswer: function (id, item) {
+                mitem = {}
+                //绑定id和text
+                for (var i in item) {
+                    mitem[item[i].id] = item[i].text
+                }
+                return mitem[id]
+            },
+        },
+    })
+</script>

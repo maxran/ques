@@ -1,0 +1,113 @@
+<div id="paper_answer">
+    <el-card header="收集问卷" shadow="none">
+        <P>整体统计</P>
+        <ve-ring :data="AchartData" :settings="{}"></ve-ring>
+        <el-table :data="answerList">
+            <el-table-column prop="title" label="问卷标题">
+            </el-table-column>
+            <el-table-column label="内容">
+                <template slot-scope="scope">
+                    <div v-for="(item,index) in scope.row.content">
+                        <span>{{item.text}}</span>
+                        <el-tag size="mini">{{trAnswer(item.answer,scope.row.item)}}</el-tag>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column label="统计">
+                <template slot-scope="scope">
+                    <ve-histogram height="200px" :data="scope.row.chartData" :settings="{}"></ve-histogram>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: "#paper_answer",
+        methods: {
+            trAnswer: function (id, item) {
+                mitem = {}
+                //绑定id和text
+                for (var i in item) {
+                    mitem[item[i].id] = item[i].text
+                }
+                return mitem[id]
+            }
+        },
+        created: function () {
+            var _this = this
+            //获取answer表数据
+            $.get("/papers/answer", function (result) {
+                var data = JSON.stringify(result.data)
+                result.data = JSON.parse(data, function (key, val) {
+                    if (key == "content" || key == "item") {
+                        return JSON.parse(val)
+                    } else {
+                        return val
+                    }
+                })
+                for (var j in result.data) {
+                    var AchartData = {
+                        columns: ['评价', '数量'],
+                        rows: []
+                    }
+                    var Aanswer = []
+                    for (n in result.data) {
+                        for (m in result.data[n].content) {
+                            var wanswer = result.data[n].content[m].answer
+                            wanswer = _this.trAnswer(result.data[n].content[m].answer, result.data[j].item)
+                            Aanswer.push(wanswer)
+                        }
+                    }
+                    var obj = {}
+                    for (w in Aanswer) {
+                        var ai = Aanswer[w]
+                        if (obj[ai]) {
+                            obj[ai]++
+                        } else {
+                            obj[ai] = 1
+                        }
+                    }
+                    for (p in obj) {
+                        AchartData.rows.push({
+                            评价: p,
+                            数量: obj[p]
+                        })
+                    }
+
+                    var chartData = {
+                        columns: ['level', 'num'],
+                        rows: []
+                    }
+                    var tmp = {}
+                    for (var k in result.data[j].content) {
+                        var answer = result.data[j].content[k].answer
+                        answer = _this.trAnswer(answer, result.data[j].item)
+                        if (tmp[answer]) {
+                            tmp[answer]++
+                        } else {
+                            tmp[answer] = 1
+                        }
+                    }
+
+                    for (var l in tmp) {
+                        chartData.rows.push({
+                            level: l,
+                            num: tmp[l]
+                        })
+                    }
+                    result.data[j].chartData = chartData
+                }
+                _this.answerList = result.data
+                _this.AchartData = AchartData
+            })
+        },
+        data: {
+            answerList: [],
+            chartData: {},
+            AchartData: {},
+        }
+    })
+
+</script>

@@ -1,0 +1,129 @@
+<style>
+    #users .image{
+        height: 80px;
+        width: 80px;
+    }
+    #users .image img{
+        height: 100%;
+        width: 100%;
+    }
+</style>
+<div id="users">
+    <el-table v-loading="loading" :data="usersData.slice((currentPage-1)*pagesize,currentPage*pagesize)" style="width: 100%">
+        <el-table-column prop="id" label="编号" width="50">
+        </el-table-column>
+        <el-table-column prop="photo" label="头像" width="150">
+            <template slot-scope="scope">
+                <div class="image">
+                    <img :src="scope.row.photo" alt="">
+                </div>
+            </template>>
+        </el-table-column>
+        <el-table-column prop="username" label="用户名">
+        </el-table-column>
+        <el-table-column prop="sex" label="性别">
+            <template slot-scope="scope">
+                {{sex[scope.row.sex]}}
+            </template>>
+        </el-table-column>
+        <el-table-column prop="email" label="邮箱">
+        </el-table-column>
+        <el-table-column prop="phone" label="手机">
+        </el-table-column>
+        <el-table-column label="创建时间">
+            <template slot-scope="scope">
+                {{scope.row.ctime|currency}}
+            </template>>
+        </el-table-column>
+        <el-table-column label="修改时间">
+            <template slot-scope="scope">
+                {{scope.row.mtime|currency}}
+            </template>>
+        </el-table-column>
+        <el-table-column fixed="right" label="操作">
+            <template slot-scope="scope">
+                <el-button @click="del(scope)" type="text" size="small">删除</el-button>
+                <a target="_self" :href="'/users/edit?id='+scope.row.id" style="color:#409EFF; margin-left: 10px;">编辑</a>
+            </template>
+        </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="[3, 5, 7, 10]"
+        :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" :total=usersData.length>
+    </el-pagination>
+</div>
+
+<script>
+    new Vue({
+        el: "#users",
+        data: {
+            usersData: [],
+            sex: ["", "男", "女", "保密"],
+            loading: true,
+            currentPage: 1,
+            pagesize: 3,
+        },
+        filters: {
+            currency(time) {
+                if (new Date(time).getTime() != 0) {
+                    var ntime = new Date(time),
+                        y = ntime.getFullYear(),
+                        m = ntime.getMonth() + 1,
+                        d = ntime.getDate()
+                    return y + '-' + m + '-' + d
+                }
+            }
+        },
+        created: function () {
+            var _this = this
+            $.get("/users/get", function (result) {
+                if (result.error == 0) {
+                    console.log(result)
+                    _this.usersData = result.data
+                } else {
+                    console.log("数据获取失败")
+                }
+                _this.loading = false
+            }, "json")
+        },
+        methods: {
+            handleSizeChange(val) {
+                this.pagesize = val;
+            },
+            handleCurrentChange(val) {
+                this.currentPage = val;
+            },
+            del: function (scope) {
+                //删除用户
+                var _this = this
+                this.$confirm("注意:删除后不可恢复", "确认删除吗?", {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: "warning",
+                    callback: function (action) {
+                        if (action == "cancel") {
+                            return
+                        }
+                        //点击确定后删除
+                        _this.loading = true
+                        $.get("/users/del", { id: scope.row.id }, function (result) {
+                            if (result.error == 0) {
+                                _this.usersData.splice(scope.$index, 1)
+                                _this.$message({
+                                    message: '删除成功!',
+                                    type: 'success'
+                                })
+                            } else {
+                                console.log("数据获取失败")
+                            }
+                            _this.loading = false
+                        })
+                    }
+                })
+            },
+            edit: function (id) {
+                indexVm.loadPage('/menu/userEdit.html?id=' + id)
+            },
+        },
+    })
+
+</script>
