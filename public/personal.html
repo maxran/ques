@@ -31,7 +31,7 @@
         </el-table-column>
         <el-table-column label="总体情况">
             <template slot-scope="scope">
-                <ve-ring height="400px" :data="chartData" :settings="{}"></ve-ring>
+                <ve-ring height="400px" width="90%" :data="chartData" :settings="{}"></ve-ring>
             </template>
         </el-table-column>
     </el-table>
@@ -66,7 +66,6 @@
         created: function () {
             var _this = this
             $.get('/users/personal', function (result) {
-                console.log(result)
                 _this.usersData = result.data
                 _this.loading = false
             })
@@ -79,36 +78,6 @@
                         return val
                     }
                 })
-                var arrA = []
-                for (var j in result.data) {
-                    var chartData = {
-                        columns: ['level', 'pre'],
-                        rows: []
-                    }
-
-                    var tmp = {},
-                        arr = []
-                    for (var k in result.data[j].content) {
-                        var answer = result.data[j].content[k].answer
-                        answer = _this.trAnswer(answer, result.data[j].item)
-                        arr.push(result.data[j].content[k].answer)
-                    }
-
-                    console.log(arr)
-                    // if (tmp[answer]) {
-                    //         tmp[answer]++
-                    //     } else {
-                    //         tmp[answer] = 1
-                    //     }
-
-                    // for (var l in tmp) {
-                    //     chartData.rows.push({
-                    //         level: l,
-                    //         pre: tmp[l]
-                    //     })
-                    // }
-                    // result.data[j].chartData = chartData
-                }
             })
         },
         methods: {

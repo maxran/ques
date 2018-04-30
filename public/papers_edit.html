@@ -38,11 +38,9 @@
             $.get("/papers/find", { id: Cookies.get('paper_id') },
                 function (result) {
                     if (result.error != 0) return
-                    console.log(result)
                     _this.papers.title = result.data.title
                     _this.$refs.tree.setCheckedNodes(JSON.parse(result.data.content));
                     _this.$refs.tree1.setCheckedNodes(JSON.parse(result.data.item));
-                    console.log(result.data.item)
                 })
         },
         methods: {
@@ -57,7 +55,6 @@
                 }
             },
             select: function (data, isSelect) {
-                console.log(data)
                 if (data.children.length == 0) {
                     if (isSelect) {
                         this.papers.item.push(data)
@@ -85,7 +82,6 @@
                                 content: JSON.stringify(_this.papers.content),
                                 item: JSON.stringify(_this.papers.item)
                             }, function (result) {
-                                console.log(result)
                                 indexVm.loadPage('/menu/papers.html')
                             })
                             $.get("/papers", function (result) {

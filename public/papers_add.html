@@ -48,13 +48,30 @@
                 }
             },
             select: function (data, isSelect) {
-                console.log(data)
+                this.ndata.push(data)
                 if (data.children.length == 0) {
                     if (isSelect) {
                         this.papers.item.push(data)
                     } else {
                         var index = this.papers.item.indexOf(data)
                         this.papers.item.splice(index, 1)
+                    }
+                }
+                //禁用选项
+                  for (var i=0;i<this.ndata.length;i++) {
+                    if (this.ndata[i].children.length == 0) {
+                        this.pid = this.ndata[i].pid
+                        for (j in this.outline1) {
+                            for (k in this.outline1[j].children) {
+                                if (this.outline1[j].children[k].pid != this.pid) {
+                                    this.outline1[j].children[k].disabled = 1
+                                }
+                                if (this.papers.item.length == 0) {
+                                    this.outline1[j].children[k].disabled = 0
+                                    this.ndata = []
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -73,7 +90,6 @@
                                 content: JSON.stringify(_this.papers.content),
                                 item: JSON.stringify(_this.papers.item)
                             }, function (result) {
-                                console.log(result)
                                 indexVm.loadPage('/menu/papers.html')
                             })
                             $.get("/papers", function (result) {
@@ -96,6 +112,8 @@
                 papersData: [],
                 outline: [],
                 outline1: [],
+                ndata:[],
+                pid:'',
                 papers: {
                     id: '',
                     title: '',

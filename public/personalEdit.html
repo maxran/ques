@@ -137,7 +137,6 @@
         created: function () {
             var _this = this
             $.get('/users/personal/info', function (result) {
-                console.log(result.data.username)
                 _this.form.username = result.data.username
                 _this.form.email = result.data.email
                 _this.form.phone = result.data.phone
@@ -266,7 +265,6 @@
                 var _this = this
                 $.post('/personal/logo', { photo: res[0].filename }, function (result) {
                     if (result.error == 0) {
-                        console.log(result)
                         _this.$message({
                             type: 'success',
                             message: '头像修改成功!'

@@ -103,7 +103,6 @@
         created: function () {
             var _this = this
             $.get('/users/find', { id: location.search.split('=')[1] }, function (result) {
-                console.log(result)
                 _this.form.username = result.data.username
                 _this.form.email = result.data.email
                 _this.form.phone = result.data.phone

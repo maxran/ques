@@ -77,7 +77,6 @@
             var _this = this
             $.get("/users/get", function (result) {
                 if (result.error == 0) {
-                    console.log(result)
                     _this.usersData = result.data
                 } else {
                     console.log("数据获取失败")
